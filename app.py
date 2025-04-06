@@ -51,21 +51,62 @@ st.header("📂 Prédictions à partir d’un fichier CSV")
 
 uploaded_file = st.file_uploader("Charger un fichier CSV", type="csv")
 if uploaded_file is not None:
-    # Charger le fichier CSV
     csv_data = pd.read_csv(uploaded_file)
-    
-    # Vérifier si les colonnes attendues sont présentes dans les données
     for col in expected_features:
         if col not in csv_data.columns:
-            csv_data[col] = 0  # Ajouter des colonnes manquantes avec 0
-    
-    # Sélectionner les colonnes nécessaires
+            csv_data[col] = 0
     csv_data = csv_data[expected_features]
-    
-    # Prédiction sur les données du fichier CSV
     predictions = model.predict(csv_data)
     csv_data["Classe de prix prédite"] = predictions
-    
-    # Afficher les résultats des prédictions
-    st.write("Prédictions basées sur les données importées :")
     st.write(csv_data)
+
+# Section : Visualisations
+st.header("📊 Visualisations des données")
+
+try:
+    data = pd.read_csv("mobile_prices.csv")
+
+    if {'battery_power', 'three_g', 'touch_screen', 'dual_sim', 'price_range'}.issubset(data.columns):
+        st.subheader("Corrélation entre les variables sélectionnées et le prix")
+
+        # Sélectionner uniquement les colonnes nécessaires
+        selected_columns = ['battery_power', 'three_g', 'touch_screen', 'dual_sim', 'price_range']
+        correlation_data = data[selected_columns]
+
+        # Calculer la corrélation
+        corr = correlation_data.corr(numeric_only=True)
+
+        # Créer une figure explicite pour la heatmap
+        fig, ax = plt.subplots()
+        sns.heatmap(corr, annot=True, fmt=".2f", cmap="coolwarm", ax=ax)
+        ax.set_title("Corrélation entre les variables et le prix")
+        st.pyplot(fig)
+
+        # Histogramme des caméras (front et principale)
+        st.subheader("Histogramme des caméras")
+        fig2, ax2 = plt.subplots(figsize=(10, 6))
+        data['fc'].hist(alpha=0.5, color='blue', label='Front camera')
+        data['pc'].hist(alpha=0.5, color='red', label='Primary camera')
+        plt.legend()
+        plt.xlabel('MegaPixels')
+        st.pyplot(fig2)
+
+        # Graphique circulaire pour les 4G
+        st.subheader("Répartition des supports 4G")
+        labels4g = ["4G-supported", 'Not supported']
+        values4g = data['four_g'].value_counts().values
+        fig1, ax1 = plt.subplots()
+        ax1.pie(values4g, labels=labels4g, autopct='%1.1f%%', shadow=True, startangle=90)
+        plt.title("Répartition des supports 4G")
+        st.pyplot(fig1)
+
+        # Jointplot entre RAM et price_range
+        st.subheader("Relation entre RAM et classe de prix")
+        sns.jointplot(x='ram', y='price_range', data=data, color='red', kind='kde')
+        st.pyplot()
+
+    else:
+        st.warning("Certaines colonnes nécessaires sont manquantes dans le fichier CSV.")
+
+except FileNotFoundError:
+    st.warning("Fichier `mobile_prices.csv` non trouvé. Visualisation désactivée.")
