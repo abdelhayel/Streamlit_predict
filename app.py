@@ -4,7 +4,7 @@ import pickle
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-st.set_option('deprecation.showPyplotGlobalUse', False)
+
 
 # Chargement des modèles
 with open("mobile_KNN.pkl", "rb") as f:
