@@ -82,6 +82,29 @@ try:
         ax.set_title("Corrélation entre les variables et le prix")
         st.pyplot(fig)
 
+        # Histogramme des caméras (front et principale)
+        st.subheader("Histogramme des caméras")
+        fig2, ax2 = plt.subplots(figsize=(10, 6))
+        data['fc'].hist(alpha=0.5, color='blue', label='Front camera')
+        data['pc'].hist(alpha=0.5, color='red', label='Primary camera')
+        plt.legend()
+        plt.xlabel('MegaPixels')
+        st.pyplot(fig2)
+
+        # Graphique circulaire pour les 4G
+        st.subheader("Répartition des supports 4G")
+        labels4g = ["4G-supported", 'Not supported']
+        values4g = data['four_g'].value_counts().values
+        fig1, ax1 = plt.subplots()
+        ax1.pie(values4g, labels=labels4g, autopct='%1.1f%%', shadow=True, startangle=90)
+        plt.title("Répartition des supports 4G")
+        st.pyplot(fig1)
+
+        # Jointplot entre RAM et price_range
+        st.subheader("Relation entre RAM et classe de prix")
+        sns.jointplot(x='ram', y='price_range', data=data, color='red', kind='kde')
+        st.pyplot()
+
     else:
         st.warning("Certaines colonnes nécessaires sont manquantes dans le fichier CSV.")
 
