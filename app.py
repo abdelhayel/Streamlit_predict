@@ -4,8 +4,6 @@ import pickle
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-
-
 # Chargement des modèles
 with open("mobile_KNN.pkl", "rb") as f:
     knn_model, knn_features = pickle.load(f)
@@ -70,14 +68,20 @@ try:
 
     if 'price_range' in data.columns:
         st.subheader("Distribution des classes de prix")
-        sns.countplot(data['price_range'])
-        plt.xlabel("Classe de prix")
-        st.pyplot()
+        # Créer une figure explicite
+        fig1, ax1 = plt.subplots()
+        sns.countplot(data['price_range'], ax=ax1)
+        ax1.set_xlabel("Classe de prix")
+        # Afficher le graphique avec la figure explicite
+        st.pyplot(fig1)
 
     st.subheader("Corrélation entre les variables")
     corr = data.corr(numeric_only=True)
-    sns.heatmap(corr, annot=True, fmt=".2f", cmap="coolwarm")
-    st.pyplot()
+    # Créer une figure explicite pour la heatmap
+    fig2, ax2 = plt.subplots()
+    sns.heatmap(corr, annot=True, fmt=".2f", cmap="coolwarm", ax=ax2)
+    # Afficher la heatmap avec la figure explicite
+    st.pyplot(fig2)
 
 except FileNotFoundError:
     st.warning("Fichier `mobile_prices.csv` non trouvé. Visualisation désactivée.")
