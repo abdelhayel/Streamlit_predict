@@ -1,31 +1,34 @@
 import streamlit as st
 import pandas as pd
 import pickle
+import seaborn as sns
+import matplotlib.pyplot as plt
 
-# Chargement du modèle KNN avec les features
+st.set_option('deprecation.showPyplotGlobalUse', False)
+
+# Chargement des modèles
 with open("mobile_KNN.pkl", "rb") as f:
     knn_model, knn_features = pickle.load(f)
 
-# Chargement du modèle de régression logistique
 with open("logistic_model.pkl", "rb") as f:
     loaded_log = pickle.load(f)
 
-# Vérifier si c’est un tuple (modèle, features) ou juste le modèle
 if isinstance(loaded_log, tuple):
     logistic_model, logistic_features = loaded_log
 else:
     logistic_model = loaded_log
-    logistic_features = ["battery_power", "ram", "px_height", "px_width", "int_memory", "mobile_wt"]  # à ajuster selon ton entraînement
+    logistic_features = ["battery_power", "ram", "px_height", "px_width", "int_memory", "mobile_wt"]
 
-# Titre de l'application
-st.title("Mobile Price Prediction App 📱💰")
+# Titre principal
+st.title("📱 Mobile Price Prediction App")
 
 # Choix du modèle
 model_choice = st.selectbox("Choisissez un modèle :", ["KNN", "Régression Logistique"])
+model = knn_model if model_choice == "KNN" else logistic_model
+expected_features = knn_features if model_choice == "KNN" else logistic_features
 
-# Entrée des données utilisateur
-st.subheader("Entrez les caractéristiques du téléphone :")
-
+# Section : Prédiction individuelle
+st.header("🧮 Prédiction Individuelle")
 battery_power = st.slider("Battery Power (mAh)", 500, 2000, 1000)
 ram = st.slider("RAM (en MB)", 256, 4096, 2048)
 px_height = st.slider("Pixel Height", 0, 1960, 1000)
@@ -33,27 +36,48 @@ px_width = st.slider("Pixel Width", 0, 2000, 1000)
 int_memory = st.slider("Mémoire interne (en GB)", 2, 128, 32)
 mobile_wt = st.slider("Poids du téléphone (g)", 80, 250, 150)
 
-# Convertir les données en DataFrame
 user_input = pd.DataFrame([[battery_power, ram, px_height, px_width, int_memory, mobile_wt]],
                           columns=["battery_power", "ram", "px_height", "px_width", "int_memory", "mobile_wt"])
 
-# Sélection des features et du modèle
-if model_choice == "KNN":
-    expected_features = knn_features
-    model = knn_model
-else:
-    expected_features = logistic_features
-    model = logistic_model
-
-# Ajouter les colonnes manquantes avec 0
 for col in expected_features:
     if col not in user_input.columns:
         user_input[col] = 0
-
-# Réorganiser les colonnes dans le bon ordre
 user_input = user_input[expected_features]
 
-# Prédiction
-if st.button("Prédire le prix"):
+if st.button("Prédire le prix individuel"):
     prediction = model.predict(user_input)
-    st.success(f"Classe de prix prédite : {prediction[0]}")
+    st.success(f"💡 Classe de prix prédite : {prediction[0]}")
+
+# Section : Upload CSV
+st.header("📂 Prédictions à partir d’un fichier CSV")
+
+uploaded_file = st.file_uploader("Charger un fichier CSV", type="csv")
+if uploaded_file is not None:
+    csv_data = pd.read_csv(uploaded_file)
+    for col in expected_features:
+        if col not in csv_data.columns:
+            csv_data[col] = 0
+    csv_data = csv_data[expected_features]
+    predictions = model.predict(csv_data)
+    csv_data["Classe de prix prédite"] = predictions
+    st.write(csv_data)
+
+# Section : Visualisations
+st.header("📊 Visualisations des données")
+
+try:
+    data = pd.read_csv("mobile_prices.csv")
+
+    if 'price_range' in data.columns:
+        st.subheader("Distribution des classes de prix")
+        sns.countplot(data['price_range'])
+        plt.xlabel("Classe de prix")
+        st.pyplot()
+
+    st.subheader("Corrélation entre les variables")
+    corr = data.corr(numeric_only=True)
+    sns.heatmap(corr, annot=True, fmt=".2f", cmap="coolwarm")
+    st.pyplot()
+
+except FileNotFoundError:
+    st.warning("Fichier `mobile_prices.csv` non trouvé. Visualisation désactivée.")
