@@ -70,7 +70,7 @@ if uploaded_file is not None:
     st.write("Prédictions basées sur les données importées :")
     st.write(csv_data)
 
-# Section : Visualisations (toujours présente, sauf la partie de corrélation)
+# Section : Visualisations
 st.header("📊 Visualisations des données")
 
 try:
@@ -93,12 +93,6 @@ try:
     ax1.pie(values4g, labels=labels4g, autopct='%1.1f%%', shadow=True, startangle=90)
     plt.title("Répartition des supports 4G")
     st.pyplot(fig1)  # Utilisation de st.pyplot avec la figure créée
-
-    # Jointplot entre RAM et price_range
-    st.subheader("Relation entre RAM et classe de prix")
-    fig3 = plt.figure(figsize=(8, 6))
-    sns.jointplot(x='ram', y='price_range', data=data, color='red', kind='kde')
-    st.pyplot(fig3)  # Utilisation de st.pyplot avec la figure créée
 
 except FileNotFoundError:
     st.warning("Fichier `mobile_prices.csv` non trouvé. Visualisation désactivée.")
