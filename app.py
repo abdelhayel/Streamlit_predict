@@ -66,22 +66,24 @@ st.header("📊 Visualisations des données")
 try:
     data = pd.read_csv("mobile_prices.csv")
 
-    if 'price_range' in data.columns:
-        st.subheader("Distribution des classes de prix")
-        # Créer une figure explicite
-        fig1, ax1 = plt.subplots()
-        sns.countplot(data['price_range'], ax=ax1)
-        ax1.set_xlabel("Classe de prix")
-        # Afficher le graphique avec la figure explicite
-        st.pyplot(fig1)
+    if {'battery_power', 'three_g', 'touch_screen', 'dual_sim', 'price_range'}.issubset(data.columns):
+        st.subheader("Corrélation entre les variables sélectionnées et le prix")
 
-    st.subheader("Corrélation entre les variables")
-    corr = data.corr(numeric_only=True)
-    # Créer une figure explicite pour la heatmap
-    fig2, ax2 = plt.subplots()
-    sns.heatmap(corr, annot=True, fmt=".2f", cmap="coolwarm", ax=ax2)
-    # Afficher la heatmap avec la figure explicite
-    st.pyplot(fig2)
+        # Sélectionner uniquement les colonnes nécessaires
+        selected_columns = ['battery_power', 'three_g', 'touch_screen', 'dual_sim', 'price_range']
+        correlation_data = data[selected_columns]
+
+        # Calculer la corrélation
+        corr = correlation_data.corr(numeric_only=True)
+
+        # Créer une figure explicite pour la heatmap
+        fig, ax = plt.subplots()
+        sns.heatmap(corr, annot=True, fmt=".2f", cmap="coolwarm", ax=ax)
+        ax.set_title("Corrélation entre les variables et le prix")
+        st.pyplot(fig)
+
+    else:
+        st.warning("Certaines colonnes nécessaires sont manquantes dans le fichier CSV.")
 
 except FileNotFoundError:
     st.warning("Fichier `mobile_prices.csv` non trouvé. Visualisation désactivée.")
